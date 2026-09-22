@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="sr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Унос вести | XIV београдска гимназија</title>
+    <link rel="icon" href="../favicon.ico" sizes="any">
+    <link rel="icon" href="../slike/favicon-32.png" type="image/png" sizes="32x32">
+    <link rel="stylesheet" href="../navbar.css">
+    <style>
+        body { background: var(--pozadina); }
+        .zaglavlje { background: var(--gradijent); color: #fff; padding: 28px 0; }
+        .zaglavlje h1 { font-family: var(--font-naslov); font-weight: 900; font-size: 1.8rem; }
+        .zaglavlje p { opacity: .9; }
+        .raspored { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 28px auto 60px; }
+        .kutija { background: #fff; border-radius: 20px; box-shadow: var(--senka); padding: 26px; }
+        .kutija h2 { font-family: var(--font-naslov); color: var(--plava); font-size: 1.3rem; margin-bottom: 16px; }
+        label { display: block; font-weight: 600; font-size: 14px; color: var(--plava); margin: 14px 0 6px; }
+        label small { font-weight: 400; color: var(--tekst-blagi); }
+        input, select, textarea {
+            width: 100%; padding: 11px 14px; border: 1px solid var(--linija); border-radius: 12px;
+            font: inherit; font-size: 15px; background: #fff; color: var(--tekst);
+        }
+        input:focus, select:focus, textarea:focus { outline: 2px solid var(--zelena); border-color: transparent; }
+        textarea { min-height: 120px; resize: vertical; }
+        .red2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .dugmad { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        button.dugme { border: 0; }
+        .lista { list-style: none; display: grid; gap: 10px; max-height: 560px; overflow: auto; }
+        .lista li { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--pozadina); }
+        .lista b { display: block; color: var(--plava); font-size: 15px; }
+        .lista span { font-size: 13px; color: var(--tekst-blagi); }
+        .lista .akcije { display: flex; gap: 6px; flex-shrink: 0; }
+        .lista button { border: 1px solid var(--linija); background: #fff; border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 13px; }
+        .lista button:hover { border-color: var(--zelena); }
+        .uputstvo { margin-top: 24px; padding: 18px 20px; border-radius: 16px; background: var(--nebo-50); font-size: 14.5px; }
+        .uputstvo ol { padding-left: 20px; }
+        .uputstvo li { margin: 4px 0; }
+        .poruka { margin-top: 12px; font-size: 14px; color: var(--zelena-700); font-weight: 600; min-height: 1.4em; }
+        @media (max-width: 860px) { .raspored { grid-template-columns: 1fr; } }
+    </style>
+</head>
+
+<body>
+    <div class="zaglavlje">
+        <div class="omot">
+            <h1>Унос вести</h1>
+            <p>Додајте или измените вест, па преузмите нови фајл <b>vesti.js</b> и замените стари у фасцикли <b>vesti</b>.</p>
+        </div>
+    </div>
+
+    <div class="omot raspored">
+        <form class="kutija" id="forma" autocomplete="off">
+            <h2 id="naslov-forme">Нова вест</h2>
+
+            <div class="red2">
+                <div>
+                    <label for="datum">Датум</label>
+                    <input type="date" id="datum" required>
+                </div>
+                <div>
+                    <label for="kategorija">Категорија</label>
+                    <input id="kategorija" list="kategorije" value="Обавештење" required>
+                    <datalist id="kategorije">
+                        <option value="Обавештење"><option value="Настава"><option value="Ученици">
+                        <option value="Такмичења"><option value="Пројекти"><option value="Часопис"><option value="Догађаји">
+                    </datalist>
+                </div>
+            </div>
+
+            <label for="naslov">Наслов</label>
+            <input id="naslov" required maxlength="140">
+
+            <label for="kratko">Кратак опис <small>(1–2 реченице, приказује се на почетној)</small></label>
+            <textarea id="kratko" required maxlength="260" style="min-height:80px"></textarea>
+
+            <label for="tekst">Цео текст <small>(нов ред = нов пасус)</small></label>
+            <textarea id="tekst"></textarea>
+
+            <div class="red2">
+                <div>
+                    <label for="link">Линк <small>(није обавезно)</small></label>
+                    <input id="link" placeholder="https://... или vesti/dokument.pdf">
+                </div>
+                <div>
+                    <label for="slika">Слика <small>(није обавезно)</small></label>
+                    <input id="slika" placeholder="slike/vesti/naziv.webp">
+                </div>
+            </div>
+
+            <div class="dugmad">
+                <button type="submit" class="dugme dugme-plavo" id="sacuvaj">Додај вест</button>
+                <button type="button" class="dugme dugme-svetlo" id="otkazi" hidden>Откажи измену</button>
+            </div>
+            <p class="poruka" id="poruka" role="status"></p>
+        </form>
+
+        <div>
+            <div class="kutija">
+                <h2>Постојеће вести</h2>
+                <ul class="lista" id="lista"></ul>
+                <div class="dugmad">
+                    <button type="button" class="dugme dugme-primarno" id="preuzmi">Преузми нови vesti.js</button>
+                </div>
+                <div class="uputstvo">
+                    <ol>
+                        <li>Додајте, измените или обришите вести.</li>
+                        <li>Кликните „Преузми нови vesti.js“.</li>
+                        <li>Преузетим фајлом замените <b>vesti/vesti.js</b> на серверу сајта.</li>
+                        <li>Вести се одмах појављују на почетној и на страни Новости.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vesti.js"></script>
+    <script>
+        (function () {
+            const vesti = Array.isArray(window.VESTI) ? window.VESTI.slice() : [];
+            const wp = window.VESTI_WORDPRESS || '';
+            let izmena = -1;
+            const $ = id => document.getElementById(id);
+            const polja = ['datum', 'kategorija', 'naslov', 'kratko', 'tekst', 'link', 'slika'];
+
+            $('datum').value = new Date().toISOString().slice(0, 10);
+
+            function esc(t) {
+                return String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+            }
+
+            function sortiraj() {
+                vesti.sort((a, b) => String(b.datum).localeCompare(String(a.datum)));
+            }
+
+            function prikazi() {
+                sortiraj();
+                $('lista').innerHTML = vesti.map((v, i) =>
+                    '<li><div><b>' + esc(v.naslov) + '</b><span>' + esc(v.datum) + ' · ' + esc(v.kategorija) + '</span></div>' +
+                    '<div class="akcije"><button type="button" data-izmeni="' + i + '">Измени</button>' +
+                    '<button type="button" data-obrisi="' + i + '">Обриши</button></div></li>'
+                ).join('') || '<li>Нема вести.</li>';
+            }
+
+            function ocisti() {
+                izmena = -1;
+                $('forma').reset();
+                $('datum').value = new Date().toISOString().slice(0, 10);
+                $('naslov-forme').textContent = 'Нова вест';
+                $('sacuvaj').textContent = 'Додај вест';
+                $('otkazi').hidden = true;
+            }
+
+            $('forma').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const v = {};
+                polja.forEach(p => { v[p] = $(p).value.trim(); });
+                if (!v.tekst) v.tekst = v.kratko;
+                if (izmena >= 0) vesti[izmena] = v; else vesti.push(v);
+                $('poruka').textContent = izmena >= 0 ? 'Вест је измењена.' : 'Вест је додата. Не заборавите да преузмете нови фајл.';
+                ocisti();
+                prikazi();
+            });
+
+            $('otkazi').addEventListener('click', ocisti);
+
+            $('lista').addEventListener('click', (e) => {
+                const iz = e.target.dataset.izmeni, ob = e.target.dataset.obrisi;
+                if (iz !== undefined) {
+                    izmena = Number(iz);
+                    polja.forEach(p => { $(p).value = vesti[izmena][p] || ''; });
+                    if (/^\d{4}-\d{2}$/.test(vesti[izmena].datum)) $('datum').value = vesti[izmena].datum + '-01';
+                    $('naslov-forme').textContent = 'Измена вести';
+                    $('sacuvaj').textContent = 'Сачувај измену';
+                    $('otkazi').hidden = false;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                if (ob !== undefined && confirm('Обрисати вест „' + vesti[Number(ob)].naslov + '“?')) {
+                    vesti.splice(Number(ob), 1);
+                    prikazi();
+                    $('poruka').textContent = 'Вест је обрисана.';
+                }
+            });
+
+            $('preuzmi').addEventListener('click', () => {
+                sortiraj();
+                const cist = vesti.map(v => {
+                    const o = {};
+                    polja.forEach(p => { if (v[p]) o[p] = v[p]; });
+                    return o;
+                });
+                const sadrzaj =
+                    '/* Vesti škole – napravljeno kroz vesti/unos.html (' + new Date().toLocaleString('sr-RS') + ') */\n\n' +
+                    'window.VESTI_WORDPRESS = ' + JSON.stringify(wp) + ';\n\n' +
+                    'window.VESTI = ' + JSON.stringify(cist, null, 4) + ';\n';
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([sadrzaj], { type: 'text/javascript' }));
+                a.download = 'vesti.js';
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+            });
+
+            prikazi();
+        })();
+    </script>
+</body>
+
+</html>

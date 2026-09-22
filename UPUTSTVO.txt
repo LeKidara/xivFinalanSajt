@@ -1,0 +1,25 @@
+XIV BEOGRADSKA GIMNAZIJA – KRATKO UPUTSTVO
+===========================================
+
+1) DODAVANJE VESTI (bez programiranja)
+   - Otvori vesti/unos.html u pregledaču (na serveru ili lokalno).
+   - Popuni formular i klikni "Додај вест".
+   - Klikni "Преузми нови vesti.js" i tim fajlom zameni vesti/vesti.js.
+   - Vesti se odmah pojavljuju na početnoj (3 najnovije) i na strani Новости.
+   - Opciono: u vesti/vesti.js upiši adresu WordPress bloga u VESTI_WORDPRESS
+     i objave sa bloga automatski se dodaju na sajt.
+
+2) IZMENA TEKSTA NA STRANAMA
+   - Tekst je u napravi_stranice.py (kontakt podaci u rečniku KONTAKT na vrhu).
+   - Posle izmene pokreni:  python3 napravi_stranice.py
+
+3) BRŽE UČITAVANJE SLIKA
+   - Stavi fotografije u folder slike/ i pokreni:
+       pip install pillow
+       python3 optimizuj_slike.py
+       python3 napravi_stranice.py
+   - Strane tada automatski koriste lakše .webp verzije.
+
+4) FAJLOVI KOJI SE NE DIRAJU RUČNO
+   - index.html i sve .html strane u folderima prave se iz napravi_stranice.py
+     (izuzetak je vesti/unos.html).
