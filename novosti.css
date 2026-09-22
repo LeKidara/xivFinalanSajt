@@ -1,126 +1,223 @@
 /* ==========================================================================
-   POČETNA STRANA – školske vesti i „О нашој школи“
+   POČETNA – vesti i „О нашој школи“
    ========================================================================== */
 
 .news-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    gap: 26px;
 }
 
 .news-article {
+    position: relative;
     display: flex;
     flex-direction: column;
-    padding: 28px 26px 26px;
-    background: var(--bela);
-    border: 1px solid var(--linija);
-    border-radius: var(--radius);
-    transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+    padding: 24px 24px 22px;
+    border: var(--kontura);
+    border-radius: var(--r);
+    background: #fff;
+    box-shadow: var(--senka-m);
+    transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
 }
+
+.news-article:nth-child(3n+2) { box-shadow: var(--senka-k); }
+.news-article:nth-child(3n) { box-shadow: var(--senka-t); }
 
 .news-article:hover {
-    border-color: transparent;
-    box-shadow: var(--senka-jaka);
-    transform: translateY(-3px);
+    transform: translate(-3px, -4px) rotate(-0.6deg);
+    box-shadow: 9px 9px 0 var(--mastilo);
 }
 
-.news-meta {
+.news-vrh {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 16px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--linija);
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+/* datum kao list iz kalendara */
+.datum-list {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 66px;
+    padding: 12px 8px 7px;
+    border: var(--kontura);
+    border-radius: 14px;
+    background: var(--kobalt-50);
+    line-height: 1;
+    text-align: center;
+    transform: rotate(-3deg);
+    transition: transform 0.4s var(--opruga);
+}
+
+.datum-list::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    width: 30px;
+    height: 10px;
+    border: 2px solid var(--mastilo);
+    border-radius: 6px;
+    background: #fff;
+    transform: translateX(-50%);
+}
+
+.news-article:hover .datum-list {
+    transform: rotate(4deg) scale(1.05);
+}
+
+.datum-list b {
+    font-family: var(--font-naslov);
+    font-size: 25px;
+    font-weight: 800;
+    color: var(--mastilo);
+}
+
+.datum-list span {
+    margin-top: 3px;
     font-size: 13px;
-}
-
-.kategorija {
-    color: var(--zelena-700);
-    font-weight: 700;
-    letter-spacing: 1.2px;
+    font-weight: 800;
     text-transform: uppercase;
+    color: var(--kobalt);
 }
 
-.datum {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+.datum-list small {
+    margin-top: 2px;
+    font-size: 11.5px;
+    font-weight: 700;
     color: var(--tekst-blagi);
 }
 
-.datum .ik {
-    width: 15px;
-    height: 15px;
+.news-article:nth-child(3n+2) .datum-list { background: var(--menta-50); }
+.news-article:nth-child(3n) .datum-list { background: var(--tirkiz-50); }
+
+.kategorija {
+    padding: 5px 12px;
+    border: 2px solid var(--mastilo);
+    border-radius: 999px;
+    background: var(--menta);
+    color: var(--mastilo);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
 }
+
+.news-article:nth-child(3n+2) .kategorija { background: var(--kobalt); color: #fff; }
+.news-article:nth-child(3n) .kategorija { background: var(--tirkiz); color: #fff; }
 
 .news-article h3 {
     margin-bottom: 10px;
     font-family: var(--font-naslov);
-    font-size: 1.35rem;
+    font-size: 1.12rem;
     font-weight: 700;
-    line-height: 1.3;
-    color: var(--plava);
+    line-height: 1.35;
+    color: var(--mastilo);
 }
 
 .news-article p {
     flex: 1;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     color: var(--tekst-blagi);
 }
 
-/* ---------- О нашој школи ---------- */
-.about-section {
-    display: grid;
-    grid-template-columns: 1.05fr 1fr;
-    align-items: stretch;
-    background: var(--bela);
-    border-radius: var(--radius);
-    box-shadow: var(--senka);
-    overflow: hidden;
-}
-
-.about-image {
-    position: relative;
-    min-height: 420px;
-    background: var(--plava);
-}
-
-.about-image img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+.news-slika {
+    margin: -8px 0 16px;
+    border: var(--kontura);
+    border-radius: 14px;
+    aspect-ratio: 16 / 9;
     object-fit: cover;
 }
 
-/* kosa traka iz palete preko slike */
-.about-image::after {
+/* ---------- О нашој школи ---------- */
+.o-nama {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    align-items: center;
+    gap: 60px;
+}
+
+.o-nama-slika {
+    position: relative;
+}
+
+.zalepljena {
+    position: relative;
+    margin: 0;
+    padding: 12px;
+    border: var(--kontura);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: var(--senka-k);
+    transform: rotate(-2.5deg);
+    transition: transform 0.6s var(--opruga);
+}
+
+.zalepljena:hover {
+    transform: rotate(0) scale(1.02);
+}
+
+.zalepljena::before,
+.zalepljena::after {
     content: "";
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 64px;
-    background: linear-gradient(var(--plava) 0 55%, var(--zelena) 55% 100%);
-    clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 100%);
+    width: 110px;
+    height: 28px;
+    background: rgba(18, 184, 134, 0.55);
+    z-index: 2;
 }
 
-.about-text {
-    padding: 56px 52px;
+.zalepljena::before {
+    left: -26px;
+    top: 14px;
+    transform: rotate(-38deg);
 }
 
-.about-text h2 {
-    margin-bottom: 18px;
-    font-family: var(--font-naslov);
-    font-size: clamp(1.8rem, 3vw, 2.3rem);
-    line-height: 1.2;
-    color: var(--plava);
+.zalepljena::after {
+    right: -26px;
+    bottom: 18px;
+    transform: rotate(-38deg);
+    background: rgba(46, 107, 230, 0.45);
 }
 
-.about-text p {
+.zalepljena img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 3px;
+    background: var(--kobalt-50);
+}
+
+.beleska {
+    position: absolute;
+    right: -10px;
+    bottom: -52px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-rukopis);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--kobalt);
+    transform: rotate(-4deg);
+}
+
+.beleska svg {
+    width: 56px;
+    height: 40px;
+}
+
+.o-nama-tekst h2 {
+    margin: 6px 0 18px;
+}
+
+.o-nama-tekst > p {
     margin-bottom: 22px;
     color: var(--tekst-blagi);
+    font-size: 1.06rem;
 }
 
 .about-tacke {
@@ -134,118 +231,48 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    font-weight: 500;
-    color: var(--tekst);
+    font-weight: 700;
+    color: var(--mastilo);
 }
 
 .about-tacke .ik {
-    width: 22px;
-    height: 22px;
-    padding: 4px;
+    width: 28px;
+    height: 28px;
+    padding: 5px;
+    border: 2px solid var(--mastilo);
     border-radius: 50%;
-    background: var(--zelena-50);
-    color: var(--zelena-700);
+    background: var(--menta);
 }
 
+.about-tacke li:nth-child(2) .ik { background: var(--kobalt); color: #fff; }
+.about-tacke li:nth-child(3) .ik { background: var(--tirkiz); color: #fff; }
+.about-tacke li:nth-child(4) .ik { background: #fff; }
+
+/* ---------- Ekrani ---------- */
 @media (max-width: 960px) {
     .news-grid {
         grid-template-columns: 1fr 1fr;
     }
-    .about-section {
+    .o-nama {
         grid-template-columns: 1fr;
+        gap: 80px;
     }
-    .about-image {
-        min-height: 280px;
+    .o-nama-slika {
+        max-width: 560px;
     }
 }
 
 @media (max-width: 640px) {
     .news-grid {
         grid-template-columns: 1fr;
+        gap: 20px;
     }
-    .about-text {
-        padding: 36px 24px;
+    .zalepljena::before,
+    .zalepljena::after {
+        width: 80px;
+    }
+    .beleska {
+        right: 4px;
+        font-size: 22px;
     }
 }
-
-
-/* ==========================================================================
-   VESELA TEMA – vesti i „О нашој школи“
-   ========================================================================== */
-
-.news-article {
-    position: relative;
-    overflow: hidden;
-    border: 0;
-    border-radius: 20px;
-    box-shadow: var(--senka);
-}
-
-.news-article::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 5px;
-    background: var(--zelena);
-}
-
-.news-article:nth-child(3n+2)::before { background: var(--nebo); }
-.news-article:nth-child(3n)::before { background: var(--tirkiz); }
-
-.news-article:hover {
-    transform: translateY(-6px);
-}
-
-.news-meta {
-    border-bottom: 0;
-    padding-bottom: 0;
-}
-
-.kategorija {
-    padding: 4px 12px;
-    border-radius: 999px;
-    background: var(--zelena-50);
-    letter-spacing: 0.6px;
-    font-size: 12px;
-}
-
-.news-article:nth-child(3n+2) .kategorija { background: var(--nebo-50); color: #1F6FB2; }
-.news-article:nth-child(3n) .kategorija { background: var(--tirkiz-50); color: #0B7F7F; }
-
-.news-article h3 {
-    font-weight: 800;
-}
-
-.about-section {
-    border-radius: 24px;
-}
-
-.about-text {
-    position: relative;
-    overflow: hidden;
-}
-
-.about-text::before {
-    content: "";
-    position: absolute;
-    right: -80px;
-    top: -80px;
-    width: 240px;
-    height: 240px;
-    border-radius: 50%;
-    background: var(--gradijent-svetli);
-    pointer-events: none;
-}
-
-.about-text > * {
-    position: relative;
-}
-
-.about-text h2 {
-    font-weight: 900;
-}
-
-.about-tacke li:nth-child(3n+2) .ik { background: var(--nebo-50); color: var(--nebo); }
-.about-tacke li:nth-child(3n) .ik { background: var(--tirkiz-50); color: var(--tirkiz); }

@@ -56,7 +56,7 @@ MENI = [
 ]
 ORG = ("orgrada/organizacijaRada.html", "Организација рада")
 
-FONTOVI = "https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap"
+FONTOVI = "https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap"
 
 
 def url(href, p):
@@ -130,6 +130,62 @@ def vest_link(v, p):
     return l if re.match(r"^(https?:|mailto:|#|/)", l) else p + l
 
 
+
+# ------------------------------------------------------------------ crteži
+
+def zvezdica(klasa, osnovna="zvezdica"):
+    return (f'<svg class="{osnovna} {klasa}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+            '<path d="M12 0c.6 6.4 5.6 11.4 12 12-6.4.6-11.4 5.6-12 12-.6-6.4-5.6-11.4-12-12C6.4 11.4 11.4 6.4 12 0z"/></svg>')
+
+
+def strelica_crtez():
+    return ('<svg class="crtez" viewBox="0 0 80 50" fill="none" stroke="currentColor" stroke-width="2.5" '
+            'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="--duzina:160">'
+            '<path d="M4 44C18 46 34 40 40 28S44 6 58 8s14 14 6 20"/><path d="M60 16l6 12-13 2"/></svg>')
+
+
+def silueta():
+    """Silueta grada (zgrade + kupola hrama), ista na svakoj strani."""
+    import random
+    r = random.Random(14)
+    V, S = 130, 1440
+    tacke = [(0, V)]
+    x = 0
+    while x < S:
+        if 640 <= x <= 700:            # mesto za kupolu
+            x0 = x
+            tacke += [(x0, 92), (x0 + 30, 92), (x0 + 30, 70), (x0 + 40, 70)]
+            tacke += [(x0 + 40 + dx, 70 - (2500 - (dx - 50) ** 2) ** 0.5 * 0.9) for dx in range(0, 101, 5)]
+            tacke += [(x0 + 140, 70), (x0 + 150, 70), (x0 + 150, 92), (x0 + 180, 92)]
+            x = x0 + 180
+            continue
+        w = r.randint(28, 78)
+        h = r.randint(38, 96) if r.random() > 0.25 else r.randint(20, 40)
+        tacke += [(x, V - h), (x + w, V - h)]
+        if r.random() > 0.8:            # antena
+            sx = x + w // 2
+            tacke = tacke[:-1] + [(sx - 2, V - h), (sx - 2, V - h - 16), (sx + 2, V - h - 16), (sx + 2, V - h), (x + w, V - h)]
+        x += w
+    tacke += [(S, V)]
+    d = "M" + " L".join(f"{round(a, 1)},{round(b, 1)}" for a, b in tacke) + " Z"
+    krst = '<path d="M729 -2v12M725 3h8" stroke="currentColor" stroke-width="3" fill="none"/>'
+    return (f'<svg class="silueta" viewBox="0 -4 {S} {V + 4}" preserveAspectRatio="none" aria-hidden="true">'
+            f'<path d="{d}"/><rect x="726" y="10" width="6" height="16"/>{krst}</svg>')
+
+
+MESECI_KRATKO = ['јан', 'феб', 'мар', 'апр', 'мај', 'јун', 'јул', 'авг', 'сеп', 'окт', 'нов', 'дец']
+
+
+def datum_list(d):
+    m = re.match(r"(\d{4})-(\d{2})(?:-(\d{2}))?", d or "")
+    if not m:
+        return f'<div class="datum-list"><b>–</b></div>'
+    god, mes = m.group(1), MESECI_KRATKO[int(m.group(2)) - 1]
+    if m.group(3):
+        return f'<div class="datum-list" aria-label="{datum_tekst(d)}"><b>{int(m.group(3))}</b><span>{mes}</span><small>{god}</small></div>'
+    return f'<div class="datum-list" aria-label="{datum_tekst(d)}"><b>{mes}</b><small>{god}</small></div>'
+
+
 # ------------------------------------------------------------------ zajednički delovi
 
 def gornja_traka(p):
@@ -170,7 +226,7 @@ def navbar(p, putanja):
         <div class="omot">
             <div class="navbar-left">
                 <a href="{p}index.html" class="navbar-brand">
-                    {logo(p, "navbar-logo", 52)}
+                    {logo(p, "navbar-logo", 48)}
                     <span class="navbar-title"><small>Четрнаеста</small>београдска гимназија</span>
                 </a>
             </div>
@@ -184,6 +240,7 @@ def navbar(p, putanja):
                 <span class="line"></span>
                 <span class="line"></span>
             </button>
+            <div class="napredak" aria-hidden="true"></div>
         </div>
     </nav>'''
 
@@ -224,6 +281,8 @@ def footer(p):
             ("skoli/zaposleni.html", "Запослени")]
     brze_html = "\n".join(f'                    <li><a href="{p}{h}">{t}</a></li>' for h, t in brze)
     return f'''    <footer class="footer">
+        {silueta()}
+        <div class="footer-telo">
         <div class="omot footer-content">
             <div>
                 <div class="footer-brand">
@@ -253,6 +312,7 @@ def footer(p):
         </div>
         <div class="footer-dno">
             <p class="omot footer-rights">© Четрнаеста београдска гимназија 2026. Сва права задржана. WEB DIZAJN: studio Srbljanović</p>
+        </div>
         </div>
     </footer>'''
 
@@ -291,8 +351,6 @@ def okvir(p, putanja, naslov, opis, css, telo, skripte=()):
 <body data-koren="{p}">
     <a class="preskoci" href="#sadrzaj">Пређи на садржај</a>
 
-{gornja_traka(p)}
-
 {navbar(p, putanja)}
 
     <!-- Mobilni meni -->
@@ -302,6 +360,8 @@ def okvir(p, putanja, naslov, opis, css, telo, skripte=()):
 {telo}
 
 {footer(p)}
+
+    <button class="na-vrh" id="na-vrh" type="button" aria-label="Назад на врх" hidden>{ikona("strelica-gore")}</button>
 </body>
 
 </html>
@@ -325,10 +385,16 @@ def kartice(stavke):
 
 
 def tabela(zaglavlje, redovi, klasa=""):
+    """data-label se на телефону приказује испред вредности (табела постаје низ картица)."""
     th = "".join(f'<th scope="col">{z}</th>' for z in zaglavlje)
-    tr = "\n".join("                    <tr" + (' class="odmor"' if len(r) == 1 else "") + ">" +
-                   ("".join(f"<td>{c}</td>" for c in r) if len(r) > 1 else f'<td colspan="{len(zaglavlje)}">{r[0]}</td>') +
-                   "</tr>" for r in redovi)
+    redovi_html = []
+    for r in redovi:
+        if len(r) == 1:
+            redovi_html.append(f'                    <tr class="odmor"><td colspan="{len(zaglavlje)}">{r[0]}</td></tr>')
+        else:
+            celije = "".join(f'<td data-label="{zaglavlje[i] if i < len(zaglavlje) else ""}">{c}</td>' for i, c in enumerate(r))
+            redovi_html.append(f"                    <tr>{celije}</tr>")
+    tr = "\n".join(redovi_html)
     return f'''        <div class="tabela-omot">
             <table class="tabela {klasa}">
                 <thead><tr>{th}</tr></thead>
@@ -388,8 +454,12 @@ STATISTIKA = [("1935.", "година оснивања"), ("32", "одељења
 
 
 def statistika():
-    s = "\n".join(f'            <div><strong>{b}</strong><span>{t}</span></div>' for b, t in STATISTIKA)
-    return f'        <div class="statistika">\n{s}\n        </div>'
+    s = []
+    for i, (b, t) in enumerate(STATISTIKA):
+        broj = re.sub(r"\D", "", b)
+        dod = "" if b.endswith(".") else f' data-broj="{broj}" data-sufiks="{b.replace(broj, "")}"'
+        s.append(f'            <div class="reveal" style="--i:{i}"><strong{dod}>{b}</strong><span>{t}</span></div>')
+    return '        <div class="statistika">\n' + "\n".join(s) + '\n        </div>'
 
 
 # ------------------------------------------------------------------ podstranica
@@ -421,13 +491,19 @@ def podstranica(putanja, naslov, ik, podnaslov, sadrzaj, skripte=()):
         bocni = ""
         kl_omot = "stranica-omot bez-menija"
 
+    reci = naslov.split(" ")
+    h1 = (" ".join(reci[:-1]) + " " if len(reci) > 1 else "") + f'<span class="marker">{reci[-1]}</span>'
     telo = f'''    <header class="stranica-hero">
         <div class="omot">
-            <div class="ikona-velika">{ikona(ik)}</div>
-            <div>
-                <nav class="mrvice" aria-label="Путања">{mrvice}</nav>
-                <h1>{naslov}</h1>
-                <p>{podnaslov}</p>
+            {zvezdica("")}{zvezdica("mala")}
+            <nav class="mrvice" aria-label="Путања">{mrvice}</nav>
+            <div class="hero-red">
+                <div class="ikona-velika">{ikona(ik)}</div>
+                <div>
+                    <span class="nalepnica">{odeljak or "XIV гимназија"}</span>
+                    <h1>{h1}</h1>
+                    <p>{podnaslov}</p>
+                </div>
             </div>
         </div>
     </header>
@@ -446,33 +522,27 @@ def podstranica(putanja, naslov, ik, podnaslov, sadrzaj, skripte=()):
 
 # ------------------------------------------------------------------ početna
 
-SLAJDOVI = [
-    ("slike/ringispil1.JPG", "Од 1935. године на Врачару", "Добродошли у XIV београдску гимназију",
-     "Школа са душом – место где се негују радозналост, одговорност и креативност.",
-     [("skoli/upis.html", "Упис у први разред", True), ("skoli/istorijat.html", "О школи", False)]),
-    ("slike/ringispil2.JPG", "Секције и пројекти", "Ваннаставне активности",
-     "Хор, драмска секција, дебатни клуб, Клуб Уједињених нација и још много тога.",
-     [("aktivnosti/vannastavneak.html", "Погледајте секције", True)]),
-    ("slike/ringispil3.JPG", "Еразмус+ и еТвининг", "Учимо заједно са Европом",
-     "Међународни пројекти и размене са школама из Шпаније, Немачке и других земаља.",
-     [("skoli/erasmus.html", "Међународни пројекти", True)]),
+POLAROIDI = [
+    ("slike/ringispil1.JPG", "Ученици XIV гимназије", "наша школа"),
+    ("slike/ringispil2.JPG", "Секције и пројекти", "секције и пројекти"),
+    ("slike/ringispil3.JPG", "Такмичења и успеси", "успеси и такмичења"),
 ]
 
 BRZE_VEZE = [
     ("skoli/upis.html", "kapa", "Упис", "Смерови, документа и изборни програми"),
-    ("orgrada/organizacijaRada.html", "sat", "Распоред звоњења", "Преподневна и поподневна смена"),
+    ("orgrada/organizacijaRada.html", "zvono", "Распоред звоњења", "Преподневна и поподневна смена"),
     ("nastava/udzbenici.html", "knjiga", "Уџбеници", "Спискови и размена уџбеника"),
-    ("vesti/Casopis.html", "novine", "Школски часопис", "Часопис „Ad astra“"),
+    ("vesti/Casopis.html", "novine", "Школски часопис", "Часопис „Ad astra“ наших ученика"),
 ]
 
 
-def kartica_vesti_pocetna(v, p):
+def kartica_vesti_pocetna(v, p, i=0):
     link = vest_link(v, p) or p + "vesti/novosti.html"
     dod = ' target="_blank" rel="noopener"' if link.startswith("http") else ""
-    return f'''                <article class="news-article">
-                    <div class="news-meta">
+    return f'''                <article class="news-article reveal" style="--i:{i}">
+                    <div class="news-vrh">
+                        {datum_list(v.get("datum"))}
                         <span class="kategorija">{escape(v.get("kategorija", "Вести"))}</span>
-                        <span class="datum">{ikona("kalendar")}{datum_tekst(v.get("datum"))}</span>
                     </div>
                     <h3>{escape(v["naslov"])}</h3>
                     <p>{escape(v.get("kratko", ""))}</p>
@@ -482,36 +552,25 @@ def kartica_vesti_pocetna(v, p):
 
 def pocetna():
     p = ""
-    slajdovi = []
-    for i, (src, nad, nasl, tekst, dugmad) in enumerate(SLAJDOVI):
-        tag = "h1" if i == 0 else "h2"
-        akt = " active" if i == 0 else ""
-        dug = "\n".join(
-            f'                            <a href="{h}" class="dugme {"dugme-primarno" if prim else "dugme-okvir"}">{t}{ikona("strelica-desno") if prim else ""}</a>'
-            for h, t, prim in dugmad)
-        slajdovi.append(f'''        <div class="carousel-slide{akt}">
-            {slika(src, p, lenjo=(i != 0), prioritet=(i == 0))}
-            <div class="carousel-caption">
-                <div class="omot">
-                    <div class="carousel-tekst">
-                        <span class="nadnaslov">{nad}</span>
-                        <{tag}>{nasl}</{tag}>
-                        <p>{tekst}</p>
-                        <div class="hero-dugmad">
-{dug}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>''')
-    slajdovi_html = "\n".join(slajdovi)
+    polaroidi = "\n".join(f'''            <figure class="polaroid" data-poz="{i}">
+                {slika(src, p, alt=alt, lenjo=(i != 0), prioritet=(i == 0), w=800, h=1000)}
+                <figcaption>{natpis}</figcaption>
+            </figure>''' for i, (src, alt, natpis) in enumerate(POLAROIDI))
 
-    brze = "\n".join(f'''                <a href="{h}" class="brzi-link">
+    stavke_trake = ["Од 1935. године", "Природно-математички смер", "Друштвено-језички смер",
+                    "Пет страних језика", "Еразмус+", "еТвининг", "Ученички парламент од 2001.",
+                    "Часопис „Ad astra“", "Хаџи Проданова 5"]
+    traka_niz = "".join(f'<span>{t}{zvezdica("", "ik")}</span>' for t in stavke_trake)
+
+    brze = "\n".join(f'''                <a href="{h}" class="brzi-link reveal" style="--i:{i}">
+                    <span class="broj">0{i + 1}</span>
+                    <span class="strelica-krug">{ikona("strelica-desno")}</span>
                     <span class="ikona">{ikona(ik)}</span>
-                    <span><strong>{n}</strong><span>{t}</span></span>
-                </a>''' for h, ik, n, t in BRZE_VEZE)
+                    <strong>{n}</strong>
+                    <span class="opis">{t}</span>
+                </a>''' for i, (h, ik, n, t) in enumerate(BRZE_VEZE))
 
-    vesti_html = "\n".join(kartica_vesti_pocetna(v, p) for v in ucitaj_vesti()[:3])
+    vesti_html = "\n".join(kartica_vesti_pocetna(v, p, i) for i, v in enumerate(ucitaj_vesti()[:3]))
 
     tacke = "\n".join(f'                        <li>{ikona("cekiraj")}{t}</li>' for t in
                       ["Природно-математички и друштвено-језички смер",
@@ -519,22 +578,42 @@ def pocetna():
                        "Међународни пројекти Еразмус+ и еТвининг",
                        "Ученички парламент са традицијом од 2001. године"])
 
+    cinjenice = "".join(f"<li>{ikona(ik)}{t}</li>" for ik, t in
+                        [("kapa", "2 смера"), ("poruka", "5 страних језика"), ("globus", "Еразмус+")])
+
     telo = f'''    <main>
-    <!-- Ringišpil -->
-    <section class="carousel" id="carousel" aria-label="Истакнуто">
-{slajdovi_html}
-        <div class="carousel-kontrole">
-            <div class="omot">
-                <button class="carousel-arrow prev" data-smer="-1" aria-label="Претходна слика">{ikona("strelica-levo")}</button>
-                <button class="carousel-arrow next" data-smer="1" aria-label="Следећа слика">{ikona("strelica-desno-mala")}</button>
-                <div class="carousel-tackice" id="carousel-tackice"></div>
-                <div class="carousel-brojac" id="carousel-brojac"></div>
+    <!-- Uvod -->
+    <section class="hero">
+        <div class="omot hero-mreza">
+            <div class="hero-tekst">
+                <span class="nalepnica">Од 1935. године на Врачару</span>
+                <h1>
+                    <span class="nad">XIV београдска гимназија</span>
+                    <span class="red"><span>Школа</span></span>
+                    <span class="red"><span><span class="marker">са душом</span></span></span>
+                    <span class="red"><span>у срцу Београда</span></span>
+                </h1>
+                <p class="hero-opis">Место где се негују радозналост, одговорност и креативност – и где сви чине једну дружину.</p>
+                <div class="hero-dugmad">
+                    <a href="skoli/upis.html" class="dugme dugme-primarno">Упис у први разред{ikona("strelica-desno")}</a>
+                    <a href="skoli/istorijat.html" class="dugme dugme-okvir">Упознај школу</a>
+                </div>
+                <ul class="hero-cinjenice">{cinjenice}</ul>
+            </div>
+            <div class="polaroidi" id="polaroidi" role="group" aria-label="Фотографије из школе – кликните за следећу">
+{polaroidi}
+                {zvezdica("z1")}{zvezdica("z2")}
+                <div class="klikni" aria-hidden="true">{strelica_crtez()}<span>кликни!</span></div>
             </div>
         </div>
-        <svg class="talas" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,40 C240,80 480,0 720,32 C960,64 1200,14 1440,38 L1440,80 L0,80 Z"></path>
-        </svg>
     </section>
+
+    <!-- Pokretna traka -->
+    <div class="traka-omot" aria-hidden="true">
+        <div class="traka">
+            <div class="traka-niz">{traka_niz}{traka_niz}</div>
+        </div>
+    </div>
 
     <!-- Brze veze -->
     <section class="brzi-linkovi" aria-label="Брзе везе">
@@ -550,8 +629,8 @@ def pocetna():
         <div class="omot">
             <div class="sekcija-zaglavlje">
                 <div>
-                    <span class="sekcija-oznaka">Шта је ново</span>
-                    <h2>Школске вести</h2>
+                    <span class="sekcija-oznaka">шта је ново?</span>
+                    <h2>Школске <span class="marker plavi">вести</span></h2>
                 </div>
                 <a href="vesti/novosti.html" class="link-strelica">Све вести{ikona("strelica-desno")}</a>
             </div>
@@ -564,13 +643,16 @@ def pocetna():
     <!-- O školi -->
     <section class="sekcija">
         <div class="omot">
-            <div class="about-section reveal">
-                <div class="about-image">
-                    {slika("slike/skola1.JPG", p, alt="Унутрашњост школе", w=1200, h=900)}
+            <div class="o-nama">
+                <div class="o-nama-slika reveal levo">
+                    <figure class="zalepljena">
+                        {slika("slike/skola1.JPG", p, alt="Унутрашњост школе", w=1200, h=900)}
+                    </figure>
+                    <div class="beleska" aria-hidden="true">{strelica_crtez()}<span>Хаџи Проданова 5</span></div>
                 </div>
-                <div class="about-text">
-                    <span class="sekcija-oznaka">О нама</span>
-                    <h2>О нашој школи</h2>
+                <div class="o-nama-tekst reveal desno">
+                    <span class="sekcija-oznaka">о нама</span>
+                    <h2 class="veliki">Седам деценија <span class="marker">једна дружина</span></h2>
                     <p>XIV београдска гимназија налази се у центру Београда, на Врачару. Основана је 1935. године и већ деценијама изводи на прави пут хиљаде ђака. Школу данас похађа више од хиљаду ученика у 32 одељења.</p>
                     <ul class="about-tacke">
 {tacke}
@@ -579,7 +661,7 @@ def pocetna():
                 </div>
             </div>
 {statistika()}
-{citat("XIV београдска гимназија није само образовна установа. Она је заједница.", "Марија Милетић, директорка школе")}
+{citat("XIV београдска гимназија није само образовна установа. Она је заједница.", "– Марија Милетић, директорка школе")}
         </div>
     </section>
     </main>'''
@@ -692,7 +774,7 @@ STRANE["skoli/istorijat.html"] = ("Историјат", "zgrada", "Од 1935. г
 {statistika()}
         <p>Школа има 16 учионица, три рачунарска кабинета, језичку лабораторију са мултимедијалном таблом и библиотеку. Настава физичког васпитања одржава се у оближњем Спортском центру „Врачар“.</p>
 
-{citat("Образовање није само стицање знања, већ и простор у коме се развијају радозналост, одговорност, креативност.", "Марија Милетић, директорка школе")}''')
+{citat("Образовање није само стицање знања, већ и простор у коме се развијају радозналост, одговорност, креативност.", "– Марија Милетић, директорка школе")}''')
 
 STRANE["skoli/ucenici.html"] = ("Ученик", "kapa", "Информације, правила и подршка за ученике.", f'''
         <h2>Корисне информације</h2>
@@ -1043,7 +1125,7 @@ STRANE["aktivnosti/vannastavneak.html"] = ("Секције и ваннастав
 
 {poziv("Пријава за секцију", "Јавите се наставнику који води секцију или одељењском старешини.")}''')
 
-STRANE["orgrada/organizacijaRada.html"] = ("Организација рада", "sat", "Распоред звоњења, смене и школски календар.", f'''
+STRANE["orgrada/organizacijaRada.html"] = ("Организација рада", "zvono", "Распоред звоњења, смене и школски календар.", f'''
         <h2>Распоред звоњења 2026/27.</h2>
 {tabela(["Час", "Преподневна смена", "Поподневна смена"], [
     ["1.", "7:45 – 8:30", "14:00 – 14:45"],
@@ -1059,7 +1141,7 @@ STRANE["orgrada/organizacijaRada.html"] = ("Организација рада", 
 
         <h2>Документа</h2>
 {kartice([
-    ("sat", "Распоред часова", '<a href="#">Преузми PDF' + ikona("preuzmi") + '</a>'),
+    ("zvono", "Распоред часова", '<a href="#">Преузми PDF' + ikona("preuzmi") + '</a>'),
     ("kalendar", "Школски календар", '<a href="#">Преузми PDF' + ikona("preuzmi") + '</a>'),
     ("olovka", "Распоред писаних провера", '<a href="#">Преузми PDF' + ikona("preuzmi") + '</a>'),
     ("ljudi", "Отворена врата", '<a href="#">Термини за родитеље' + ikona("preuzmi") + '</a>'),

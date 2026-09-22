@@ -10,10 +10,32 @@
     /* ---------- Senka menija pri skrolovanju ---------- */
     const navbar = document.querySelector('.navbar');
     if (navbar) {
-        const proveri = () => navbar.classList.toggle('skrolovano', window.scrollY > 10);
+        const proveri = () => {
+            navbar.classList.toggle('skrolovano', window.scrollY > 10);
+            const max = document.documentElement.scrollHeight - window.innerHeight;
+            navbar.style.setProperty('--napredak', max > 0 ? Math.min(1, window.scrollY / max).toFixed(3) : 0);
+        };
         window.addEventListener('scroll', proveri, { passive: true });
         proveri();
     }
+
+    /* ---------- Dugme „назад на врх“ ---------- */
+    (function () {
+        const dugme = document.getElementById('na-vrh');
+        if (!dugme) return;
+        const proveri = () => {
+            const treba = window.scrollY > window.innerHeight * 0.9;
+            dugme.hidden = !treba;
+            requestAnimationFrame(() => dugme.classList.toggle('vidljivo', treba));
+        };
+        window.addEventListener('scroll', proveri, { passive: true });
+        dugme.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+            const prvi = document.querySelector('.navbar-brand');
+            if (prvi) prvi.focus({ preventScroll: true });
+        });
+        proveri();
+    })();
 
     /* ---------- Mobilni meni ---------- */
     const hamburger = document.getElementById('hamburger');
@@ -71,60 +93,76 @@
         });
     });
 
-    /* ---------- Ringišpil ---------- */
+    const smanjenoKretanje = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ---------- Polaroid fotografije na početnoj ---------- */
     (function () {
-        const slides = document.querySelectorAll('.carousel-slide');
-        if (!slides.length) return;
-
-        const tackiceBox = document.getElementById('carousel-tackice');
-        const brojac = document.getElementById('carousel-brojac');
-        const tackice = [];
-        let current = 0;
+        const box = document.getElementById('polaroidi');
+        if (!box) return;
+        const slike = Array.from(box.querySelectorAll('.polaroid'));
+        if (slike.length < 2) return;
         let timer = null;
-        const dva = n => String(n).padStart(2, '0');
-        const smanjenoKretanje = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let radi = false;
 
-        function show(index) {
-            slides[current].classList.remove('active');
-            if (tackice[current]) tackice[current].classList.remove('active');
-            current = (index + slides.length) % slides.length;
-            slides[current].classList.add('active');
-            if (tackice[current]) tackice[current].classList.add('active');
-            if (brojac) brojac.innerHTML = '<strong>' + dva(current + 1) + '</strong> / ' + dva(slides.length);
+        function sledeca() {
+            if (radi) return;
+            radi = true;
+            const prva = slike.find(el => el.dataset.poz === '0');
+            prva.classList.add('odlazi');
+            setTimeout(() => {
+                slike.forEach(el => {
+                    const p = Number(el.dataset.poz);
+                    el.dataset.poz = String((p - 1 + slike.length) % slike.length);
+                });
+                prva.classList.remove('odlazi');
+                radi = false;
+            }, smanjenoKretanje ? 0 : 880);
         }
 
-        function restart() {
+        function kreni() {
             clearInterval(timer);
-            if (!smanjenoKretanje) timer = setInterval(() => show(current + 1), 7000);
+            if (!smanjenoKretanje) timer = setInterval(sledeca, 4500);
         }
 
-        if (tackiceBox) {
-            slides.forEach((_, i) => {
-                const b = document.createElement('button');
-                b.type = 'button';
-                b.setAttribute('aria-label', 'Слајд ' + (i + 1));
-                if (i === 0) b.classList.add('active');
-                b.addEventListener('click', () => { show(i); restart(); });
-                tackiceBox.appendChild(b);
-                tackice.push(b);
-            });
-        }
+        box.addEventListener('click', () => { sledeca(); kreni(); });
 
-        document.querySelectorAll('.carousel-arrow').forEach(btn => {
-            btn.addEventListener('click', () => {
-                show(current + Number(btn.dataset.smer || 1));
-                restart();
-            });
+        // prevlačenje prstom / mišem
+        let pocetakX = null;
+        box.addEventListener('pointerdown', (e) => { pocetakX = e.clientX; });
+        box.addEventListener('pointerup', (e) => {
+            if (pocetakX !== null && Math.abs(e.clientX - pocetakX) > 40) { sledeca(); kreni(); }
+            pocetakX = null;
         });
+        box.addEventListener('pointercancel', () => { pocetakX = null; });
 
-        // pauza kad kartica nije vidljiva (štedi bateriju)
-        document.addEventListener('visibilitychange', () => {
-            document.hidden ? clearInterval(timer) : restart();
+        // tastatura
+        box.setAttribute('tabindex', '0');
+        box.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') { e.preventDefault(); sledeca(); kreni(); }
         });
-
-        show(0);
-        restart();
+        box.addEventListener('mouseenter', () => clearInterval(timer));
+        box.addEventListener('mouseleave', kreni);
+        document.addEventListener('visibilitychange', () => { document.hidden ? clearInterval(timer) : kreni(); });
+        kreni();
     })();
+
+    /* ---------- Crteži: dužina linije za animaciju iscrtavanja ---------- */
+    document.querySelectorAll('.crtez path').forEach(p => {
+        try { p.style.setProperty('--duzina', Math.ceil(p.getTotalLength())); } catch (e) { /* stari pregledači */ }
+    });
+
+    /* ---------- 3D naginjanje kartica pod mišem ---------- */
+    if (!smanjenoKretanje && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        document.querySelectorAll('.brzi-link').forEach(el => {
+            el.addEventListener('pointermove', (e) => {
+                const r = el.getBoundingClientRect();
+                const x = (e.clientX - r.left) / r.width - 0.5;
+                const y = (e.clientY - r.top) / r.height - 0.5;
+                el.style.transform = 'perspective(700px) rotateX(' + (-y * 10) + 'deg) rotateY(' + (x * 12) + 'deg) translate(-3px, -3px)';
+            });
+            el.addEventListener('pointerleave', () => { el.style.transform = ''; });
+        });
+    }
 
     /* ---------- Pojavljivanje pri skrolovanju ---------- */
     const io = ('IntersectionObserver' in window)
@@ -138,13 +176,50 @@
         }, { threshold: 0.12 })
         : null;
 
-    function prati(el, i) {
+    function prati(el) {
         if (!io) { el.classList.add('vidljivo'); return; }
-        el.style.transitionDelay = (i % 3) * 70 + 'ms';
         io.observe(el);
     }
 
     document.querySelectorAll('.reveal').forEach(prati);
+
+    /* ---------- Brojači (npr. 32 одељења, 1000+ ученика) ---------- */
+    (function () {
+        const brojevi = document.querySelectorAll('[data-broj]');
+        if (!brojevi.length) return;
+        const format = n => n >= 1000 ? n.toLocaleString('sr-RS').replace(/\s/g, '.') : String(n);
+
+        function broji(el) {
+            const cilj = Number(el.dataset.broj);
+            const sufiks = el.dataset.sufiks || '';
+            if (smanjenoKretanje) { el.textContent = format(cilj) + sufiks; return; }
+            const trajanje = 1600;
+            const start = performance.now();
+            (function korak(t) {
+                const p = Math.min(1, (t - start) / trajanje);
+                const e = 1 - Math.pow(1 - p, 4);
+                el.textContent = format(Math.round(cilj * e)) + sufiks;
+                if (p < 1) requestAnimationFrame(korak);
+            })(start);
+        }
+
+        if (!('IntersectionObserver' in window)) return;
+        const o = new IntersectionObserver((unosi) => {
+            unosi.forEach(u => {
+                if (u.isIntersecting) { broji(u.target); o.unobserve(u.target); }
+            });
+        }, { threshold: 0.3 });
+        // brojimo samo one koji su ispod ekrana; ostali odmah pokazuju pravu vrednost
+        brojevi.forEach(el => {
+            if (el.getBoundingClientRect().top > window.innerHeight) {
+                el.textContent = '0' + (el.dataset.sufiks || '');
+                o.observe(el);
+            }
+        });
+        window.addEventListener('beforeprint', () => brojevi.forEach(el => {
+            el.textContent = format(Number(el.dataset.broj)) + (el.dataset.sufiks || '');
+        }));
+    })();
 
     /* ======================================================================
        DINAMIČNE VESTI
@@ -159,6 +234,7 @@
     };
 
     const MESECI = ['јануар', 'фебруар', 'март', 'април', 'мај', 'јун', 'јул', 'август', 'септембар', 'октобар', 'новембар', 'децембар'];
+    const MESECI_KRATKO = ['јан', 'феб', 'мар', 'апр', 'мај', 'јун', 'јул', 'авг', 'сеп', 'окт', 'нов', 'дец'];
     const MESECI_GEN = ['јануара', 'фебруара', 'марта', 'априла', 'маја', 'јуна', 'јула', 'августа', 'септембра', 'октобра', 'новембра', 'децембра'];
 
     function esc(t) {
@@ -242,18 +318,27 @@
         return '<img class="' + klasa + '" src="' + esc(putanja(v.slika)) + '" alt="" loading="lazy" decoding="async">';
     }
 
+    function datumList(d) {
+        const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(d || '');
+        if (!m) return '<div class="datum-list"><b>–</b></div>';
+        const mes = MESECI_KRATKO[Number(m[2]) - 1];
+        const opis = ' aria-label="' + esc(formatDatum(d)) + '"';
+        return m[3]
+            ? '<div class="datum-list"' + opis + '><b>' + Number(m[3]) + '</b><span>' + mes + '</span><small>' + m[1] + '</small></div>'
+            : '<div class="datum-list"' + opis + '><b>' + mes + '</b><small>' + m[1] + '</small></div>';
+    }
+
     /* --- početna: najnovije vesti kao kartice --- */
     function karticaPocetna(v, i) {
         const el = document.createElement('article');
-        el.className = 'news-article';
+        el.className = 'news-article reveal vidljivo';
         const link = v.link ? putanja(v.link) : KOREN + 'vesti/novosti.html';
         const dod = spoljni(v.link) ? ' target="_blank" rel="noopener"' : '';
         el.innerHTML =
-            slikaHtml(v, 'news-slika') +
-            '<div class="news-meta">' +
+            '<div class="news-vrh">' + datumList(v.datum) +
                 '<span class="kategorija">' + esc(v.kategorija || 'Вести') + '</span>' +
-                '<span class="datum">' + IK.kalendar + formatDatum(v.datum) + '</span>' +
             '</div>' +
+            slikaHtml(v, 'news-slika') +
             '<h3>' + esc(v.naslov) + '</h3>' +
             '<p>' + esc(v.kratko) + '</p>' +
             '<a href="' + esc(link) + '"' + dod + ' class="link-strelica">Прочитај више' + IK.desno + '</a>';
